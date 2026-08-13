@@ -1,5 +1,5 @@
 /* 克拉烘焙台 · Service Worker：离线缓存，让 App 可在无网络时使用 */
-const CACHE_NAME = 'carat-bakery-v6';
+const CACHE_NAME = 'carat-bakery-v7';
 const ASSETS = [
   './',
   './index.html',
