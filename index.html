@@ -377,25 +377,44 @@ html[data-theme="dark"] .ings li.scaled .i-a{color:#FFB9D8}
 .modal-greet{
   width:min(380px,92%);max-height:none;text-align:center;padding:2rem 1.6rem 1.7rem;
   background:linear-gradient(160deg,#ffffff 0%,#FDEAF2 48%,#E8F1FC 100%);
+  background-size:200% 200%;animation:greetBg 8s ease infinite;
   border:3px solid #fff;box-shadow:0 24px 60px rgba(120,90,170,.34);
 }
+.modal-greet::before{
+  content:"";position:absolute;top:-35%;left:-25%;width:150%;height:150%;pointer-events:none;
+  background:radial-gradient(circle at 50% 50%,rgba(255,205,232,.6),transparent 60%);
+  animation:greetHalo 6s ease-in-out infinite;
+}
+@keyframes greetBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes greetHalo{0%,100%{transform:translate(0,0) scale(1);opacity:.55}50%{transform:translate(6%,5%) scale(1.08);opacity:.85}}
 .greet-close{position:absolute;top:.55rem;right:.55rem;z-index:2}
 .greet-ico{
   margin:0 auto .3rem;width:128px;height:128px;border-radius:50%;display:grid;place-items:center;
   background:transparent;
   box-shadow:0 10px 26px rgba(168,140,200,.32);overflow:hidden;
-  animation:pop .5s cubic-bezier(.22,1.3,.4,1) both;
+  animation:pop .5s cubic-bezier(.22,1.3,.4,1) both, float 4s ease-in-out .55s infinite;
 }
 .greet-ico img,.greet-ico svg{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;background:transparent}
 @keyframes pop{from{transform:scale(.6) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .greet-txt{margin:.4rem 0 1.1rem;display:flex;flex-direction:column;align-items:center;gap:.28rem;color:#4A3B57}
 .greet-txt .g-name{
   font-weight:900;font-size:1.5rem;line-height:1.1;
-  background:linear-gradient(90deg,#E885B5,#8FBEF0);-webkit-background-clip:text;background-clip:text;color:transparent;
+  background:linear-gradient(90deg,#E885B5,#8FBEF0,#E885B5);background-size:200% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:greetFlow 4s linear infinite;
 }
+@keyframes greetFlow{to{background-position:200% center}}
 .greet-txt .g-verb{font-size:.82rem;color:#8A7AA0;letter-spacing:3px}
 .greet-txt .g-food{font-weight:900;font-size:1.3rem;color:#3E5C86}
 .greet-ok{width:100%;padding:.7rem;border-radius:16px}
+.greet-period{display:flex;flex-direction:column;align-items:center;gap:.08rem;margin-bottom:.55rem}
+.greet-period .gp-label{
+  font-weight:900;font-size:1.05rem;letter-spacing:1px;
+  background:linear-gradient(90deg,#E885B5,#8FBEF0,#E885B5);background-size:200% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:greetFlow 4s linear infinite;
+}
+.greet-period .gp-sub{font-size:.7rem;color:#9A8AB0;letter-spacing:1px}
 
 .step-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.2rem}
 .step-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55rem;counter-reset:s}
@@ -623,6 +642,7 @@ html[data-theme="dark"] .ings li.scaled .i-a{color:#FFB9D8}
   <div class="modal-mask" data-greet-close></div>
   <div class="modal modal-greet">
     <button class="icon-btn greet-close" data-greet-close title="关闭">✕</button>
+    <div class="greet-period"></div>
     <div class="greet-ico"></div>
     <p class="greet-txt"></p>
     <button class="btn-primary greet-ok" data-greet-close>好哒 💎</button>
@@ -1661,13 +1681,31 @@ var CAT_JUMP_ICON_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIC
   function closeDrawer(){ $('#sidebar').classList.remove('open'); $('#drawerMask').classList.remove('on'); }
 
   /* ---------- 每日灵感弹窗 ---------- */
+  var GREET_CAT_PERIOD = { bread:'morning', cnnoodle:'morning', cookie:'afternoon', candy:'afternoon', drink:'afternoon', cnpastry:'afternoon', cake:'evening', sauce:'evening' };
+  var GREET_PERIOD_INFO = {
+    morning:{ label:'🌤 早安克拉', sub:'新的一天，从烘焙开始' },
+    afternoon:{ label:'☀️ 午后小憩', sub:'下午茶时间到啦' },
+    evening:{ label:'🌙 夜晚治愈', sub:'睡前一份甜点最治愈' }
+  };
+  function greetPeriod(){
+    var h = new Date().getHours();
+    if(h>=5 && h<11) return 'morning';
+    if(h>=11 && h<17) return 'afternoon';
+    return 'evening';
+  }
   function showGreet(){
     var gm = document.getElementById('greetModal');
     if(!gm) return;
     var m = MEMBERS[Math.floor(Math.random()*MEMBERS.length)];
-    var food = (typeof RECIPES !== 'undefined' && RECIPES.length) ? RECIPES[Math.floor(Math.random()*RECIPES.length)].n : '甜点';
+    var period = greetPeriod();
+    var all = (typeof RECIPES !== 'undefined') ? RECIPES : [];
+    var pool = all.filter(function(r){ var p = GREET_CAT_PERIOD[r.c] || 'any'; return p === period || p === 'any'; });
+    var list = pool.length ? pool : all;
+    var food = list.length ? list[Math.floor(Math.random()*list.length)].n : '甜点';
     var iconBox = gm.querySelector('.greet-ico');
     if(iconBox) iconBox.innerHTML = memberSVG(m);
+    var periodBox = gm.querySelector('.greet-period');
+    if(periodBox){ var pi = GREET_PERIOD_INFO[period]; periodBox.innerHTML = '<span class="gp-label">'+pi.label+'</span><span class="gp-sub">'+pi.sub+'</span>'; }
     var txt = gm.querySelector('.greet-txt');
     if(txt) txt.innerHTML = '<span class="g-name">'+esc(m.en)+'</span><span class="g-verb">今天想吃</span><strong class="g-food">'+esc(food)+'</strong>';
     gm.hidden = false;
