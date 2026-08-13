@@ -1664,7 +1664,6 @@ var CAT_JUMP_ICON_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIC
   function showGreet(){
     var gm = document.getElementById('greetModal');
     if(!gm) return;
-    try{ var today = new Date().toISOString().slice(0,10); if(localStorage.getItem('carat-greet-date') === today) return; }catch(e){}
     var m = MEMBERS[Math.floor(Math.random()*MEMBERS.length)];
     var food = (typeof RECIPES !== 'undefined' && RECIPES.length) ? RECIPES[Math.floor(Math.random()*RECIPES.length)].n : '甜点';
     var iconBox = gm.querySelector('.greet-ico');
@@ -1672,7 +1671,6 @@ var CAT_JUMP_ICON_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIC
     var txt = gm.querySelector('.greet-txt');
     if(txt) txt.innerHTML = '<span class="g-name">'+esc(m.en)+'</span><span class="g-verb">今天想吃</span><strong class="g-food">'+esc(food)+'</strong>';
     gm.hidden = false;
-    try{ localStorage.setItem('carat-greet-date', today); }catch(e){}
     function closeGreet(){ gm.hidden = true; }
     var closers = gm.querySelectorAll('[data-greet-close]');
     Array.prototype.forEach.call(closers, function(c){
