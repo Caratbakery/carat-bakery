@@ -407,7 +407,13 @@ html[data-theme="dark"] .ings li.scaled .i-a{color:#FFB9D8}
 @keyframes greetFlow{to{background-position:200% center}}
 .greet-txt .g-verb{font-size:.82rem;color:#8A7AA0;letter-spacing:3px}
 .greet-txt .g-food{font-weight:900;font-size:1.3rem;color:#3E5C86}
-.greet-ok{width:100%;padding:.7rem;border-radius:16px}
+.greet-foot{display:flex;gap:.6rem;margin-top:.2rem}
+.greet-btn{flex:1;padding:.72rem;border-radius:16px;font-weight:900;font-size:.92rem;cursor:pointer;border:2px solid transparent;transition:transform .18s,box-shadow .18s;font-family:inherit}
+.greet-btn:hover{transform:translateY(-2px)}
+.greet-roll{background:#fff;border-color:#D9B8E6;color:#9A6F9E}
+.greet-roll:hover{box-shadow:0 8px 18px rgba(168,140,200,.22)}
+.greet-ok{background:linear-gradient(90deg,#F2A9C9,#9CC1EE);color:#fff}
+.greet-ok:hover{box-shadow:0 8px 18px rgba(120,90,170,.3)}
 .greet-period{display:flex;flex-direction:column;align-items:center;gap:.08rem;margin-bottom:.55rem}
 .greet-period .gp-label{
   font-weight:900;font-size:1.05rem;letter-spacing:1px;
@@ -645,7 +651,10 @@ html[data-theme="dark"] .ings li.scaled .i-a{color:#FFB9D8}
     <div class="greet-period"></div>
     <div class="greet-ico"></div>
     <p class="greet-txt"></p>
-    <button class="btn-primary greet-ok" data-greet-close>好哒 💎</button>
+    <div class="greet-foot">
+      <button class="greet-btn greet-roll" data-greet-roll>换一个 💎</button>
+      <button class="greet-btn greet-ok" data-greet-close>好哒 💎</button>
+    </div>
   </div>
 </div>
 
@@ -1681,39 +1690,55 @@ var CAT_JUMP_ICON_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIC
   function closeDrawer(){ $('#sidebar').classList.remove('open'); $('#drawerMask').classList.remove('on'); }
 
   /* ---------- 每日灵感弹窗 ---------- */
-  var GREET_CAT_PERIOD = { bread:'morning', cnnoodle:'morning', cookie:'afternoon', candy:'afternoon', drink:'afternoon', cnpastry:'afternoon', cake:'evening', sauce:'evening' };
+  var GREET_CAT_PERIOD = {
+    bread:'morning', cnnoodle:'morning',
+    cookie:'afternoon', candy:'afternoon', drink:'afternoon', cnpastry:'afternoon',
+    cake:'evening', sauce:'evening'
+  };
+  // 跨时段分类：深夜宵夜档额外包含这些类别（它们也出现在其他时段）
+  var GREET_NIGHT_CATS = ['drink','cookie','candy','bread'];
   var GREET_PERIOD_INFO = {
     morning:{ label:'🌤 早安克拉', sub:'新的一天，从烘焙开始' },
     afternoon:{ label:'☀️ 午后小憩', sub:'下午茶时间到啦' },
-    evening:{ label:'🌙 夜晚治愈', sub:'睡前一份甜点最治愈' }
+    evening:{ label:'🌙 夜晚治愈', sub:'睡前一份甜点最治愈' },
+    night:{ label:'🌃 深夜宵夜', sub:'夜深了，来份宵夜犒劳自己' }
   };
   function greetPeriod(){
     var h = new Date().getHours();
     if(h>=5 && h<11) return 'morning';
     if(h>=11 && h<17) return 'afternoon';
-    return 'evening';
+    if(h>=17 && h<22) return 'evening';
+    return 'night';
   }
   function showGreet(){
     var gm = document.getElementById('greetModal');
     if(!gm) return;
-    var m = MEMBERS[Math.floor(Math.random()*MEMBERS.length)];
-    var period = greetPeriod();
-    var all = (typeof RECIPES !== 'undefined') ? RECIPES : [];
-    var pool = all.filter(function(r){ var p = GREET_CAT_PERIOD[r.c] || 'any'; return p === period || p === 'any'; });
-    var list = pool.length ? pool : all;
-    var food = list.length ? list[Math.floor(Math.random()*list.length)].n : '甜点';
-    var iconBox = gm.querySelector('.greet-ico');
-    if(iconBox) iconBox.innerHTML = memberSVG(m);
-    var periodBox = gm.querySelector('.greet-period');
-    if(periodBox){ var pi = GREET_PERIOD_INFO[period]; periodBox.innerHTML = '<span class="gp-label">'+pi.label+'</span><span class="gp-sub">'+pi.sub+'</span>'; }
-    var txt = gm.querySelector('.greet-txt');
-    if(txt) txt.innerHTML = '<span class="g-name">'+esc(m.en)+'</span><span class="g-verb">今天想吃</span><strong class="g-food">'+esc(food)+'</strong>';
+    function roll(){
+      var m = MEMBERS[Math.floor(Math.random()*MEMBERS.length)];
+      var period = greetPeriod();
+      var all = (typeof RECIPES !== 'undefined') ? RECIPES : [];
+      // 宵夜档：在基础分类上叠加跨时段分类（drink/cookie/candy 也出现在午后，bread 也出现在早晨）
+      var extra = (period === 'night') ? GREET_NIGHT_CATS : [];
+      var pool = all.filter(function(r){
+        var p = GREET_CAT_PERIOD[r.c] || 'any';
+        return p === period || extra.indexOf(r.c) !== -1 || p === 'any';
+      });
+      var list = pool.length ? pool : all;
+      var food = list.length ? list[Math.floor(Math.random()*list.length)].n : '甜点';
+      var iconBox = gm.querySelector('.greet-ico');
+      if(iconBox) iconBox.innerHTML = memberSVG(m);
+      var periodBox = gm.querySelector('.greet-period');
+      if(periodBox){ var pi = GREET_PERIOD_INFO[period]; periodBox.innerHTML = '<span class="gp-label">'+pi.label+'</span><span class="gp-sub">'+pi.sub+'</span>'; }
+      var txt = gm.querySelector('.greet-txt');
+      if(txt) txt.innerHTML = '<span class="g-name">'+esc(m.en)+'</span><span class="g-verb">今天想吃</span><strong class="g-food">'+esc(food)+'</strong>';
+    }
+    roll();
     gm.hidden = false;
     function closeGreet(){ gm.hidden = true; }
     var closers = gm.querySelectorAll('[data-greet-close]');
-    Array.prototype.forEach.call(closers, function(c){
-      c.addEventListener('click', closeGreet);
-    });
+    Array.prototype.forEach.call(closers, function(c){ c.onclick = closeGreet; });
+    var reroll = gm.querySelector('[data-greet-roll]');
+    if(reroll) reroll.onclick = roll;
   }
 
   /* ---------- 启动 ---------- */
