@@ -1,5 +1,5 @@
 /* 克拉烘焙台 · Service Worker：离线缓存 + 主页始终取最新 */
-const CACHE_NAME = 'carat-bakery-v10';
+const CACHE_NAME = 'carat-bakery-v11';
 const ASSETS = [
   './',
   './index.html',
